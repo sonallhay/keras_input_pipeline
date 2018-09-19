@@ -1,0 +1,25 @@
+data/
+  +train/
+     +cat/
+      cat.0.jpg
+      cat.1.jpg
+          ：
+    +dog/
+      dog.0.jpg
+      dog.1.jpg
+          ：
+  +val/
+    +cat/
+      cat.0.jpg
+      cat.1.jpg
+          ：
+    +dog/
+      dog.0.jpg
+      dog.1.jpg
+          ：
+  +test/
+    +test_images/
+      image0.jpg
+      image1.jpg
+          ：
+  +test_result/
