@@ -18,8 +18,10 @@ data/
       dog.1.jpg
           ：
   +test/
+    +(other images for predicting per image)
     +test_images/
       image0.jpg
       image1.jpg
           ：
+    
   +test_result/
