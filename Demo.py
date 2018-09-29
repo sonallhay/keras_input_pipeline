@@ -18,15 +18,15 @@ import os
 
 # some basic configurations
 batch_size = 32  # for train & val. modify according to your GPU memory and data
-num_classes = 2  # total classes to train
+num_classes = 3  # total classes to train
 base_lr = 1e-3  # learning rate
-num_epoch = 30  # go through your training & val data epoch times
+num_epoch = 10  # go through your training & val data epoch times
 img_height = img_width = 224  # picture size (imagenet challenge)
 channel = 3  # RGB=3, grayscale=1
 seed = random.randint(0, 100)  # use for shuffle=True (not recommend, shuffle will be bad for debugging)
 test_batch_size = 10  # for test
 # TODO : Add your own  full path to ModelCheckpoint (checkpoint_path)
-checkpoint_path = 'D:/s1040328/input_pipeline/checkpoints/weights.{epoch:02d}-{loss:.3f}-{acc:.3f}-{val_loss:.3f}-{val_acc:.3f}.hdf5'  # path for saving checkpoints
+checkpoint_path = 'D:/Bill/s1040328/input_pipeline/checkpoints/weights.{epoch:02d}-{loss:.3f}-{acc:.3f}-{val_loss:.3f}-{val_acc:.3f}.hdf5'  # path for saving checkpoints
 
 
 # test_data generator
@@ -37,7 +37,7 @@ test_generator = test_datagen.flow_from_directory(
     color_mode='rgb',
     batch_size=test_batch_size,
     class_mode=None,
-    shuffle=False,
+    shuffle=True,
     seed=seed)
 
 
@@ -99,10 +99,10 @@ x = Dense(256, activation='relu')(x)
 x = Dropout(0.5)(x)
 x = Dense(256, activation='relu')(x)
 x = Dropout(0.5)(x)
-x = Dense(2, activation='softmax')(x)
+x = Dense(3, activation='softmax')(x)
 custom_model = Model(inputs=model.input, outputs=x)
 custom_model.summary()
-# custom_model.load_weights('weights.15-0.042-0.988.hdf5', by_name=True)  # only used when interface and fintune
+#custom_model.load_weights('weights.10-0.025-0.991-0.034-0.991.hdf5', by_name=True)  # only used when interface and fintune
 
 
 # Configures the learning process
@@ -147,8 +147,8 @@ plt.plot(history.history['val_loss'])
 plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
-plt.legend(['train', 'test'], loc='upper left')
-plt.savefig('VGG16_custom_model_loss_summary_graph.png')
+plt.legend(['train', 'val'], loc='upper left')
+plt.savefig('VGG16_custom_model_3classes_loss_summary_graph.png')
 plt.show()
 
 
@@ -158,8 +158,8 @@ plt.plot(history.history['val_acc'])
 plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
-plt.legend(['train', 'test'], loc='upper left')
-plt.savefig('VGG16_custom_model_accuracy_summary_graph.png')
+plt.legend(['train', 'val'], loc='upper left')
+plt.savefig('VGG16_custom_model_3classes_accuracy_summary_graph.png')
 plt.show()
 
 
@@ -206,7 +206,7 @@ cv2.destroyAllWindows()
 # testing an image with cat & dog receive bad result
 # gives the full path to img_path.
 # mind that filename extension need to be added. some imgs are jpg, others are jpeg
-img_path = r'D:\s1040328\input_pipeline\data\test\test_cat_dog_2.jpg'
+img_path = r'D:\Bill\s1040328\input_pipeline\data\test\test_car_cat_dog_1.jpg'
 
 
 def preprocess_image(path=img_path):
@@ -222,7 +222,7 @@ def preprocess_image(path=img_path):
 
 img = preprocess_image(img_path)
 mth2_predicted = custom_model.predict(img)
-mth2_index = np.argmax(predicted[0], axis=0)
+mth2_index = np.argmax(mth2_predicted[0], axis=0)
 mth2_predicted_answer = list(train_generator.class_indices.keys())[mth2_index]   # get the class name you predicted
 print('\n\n\n')
 print('Predict this image as \"{}\"\n'.format(mth2_predicted_answer))
@@ -230,15 +230,15 @@ for label in range(len(train_generator.class_indices)):
     print('The probability that this is a {} is: {:.8f}\n'.format(list(train_generator.class_indices.keys())[label],
                                                                   mth2_predicted[0][label]))
 image_for_cv2 = img[0][:, :, ::-1].copy()
-cv2.imshow('Image ' + str(i), image_for_cv2)
+cv2.imshow('Image ', image_for_cv2)
 cv2.waitKey()
 cv2.destroyAllWindows()
 
 ###########################################################
 
-# (method-3) predict your test automatically and saved to the result_path
+# (method-3) predict your tests automatically and saved to the result_path
 
-result_path = r'D:\s1040328\input_pipeline\data\test_result'   # gives a full directory path to result_path
+result_path = r'D:\Bill\s1040328\input_pipeline\data\test_result'   # gives a full directory path to result_path
 sub_file_prefix = 'predicted_as_'   # predict folder prefix
 test_generator.reset()   # prepare to use test_generator entirely
 
@@ -246,9 +246,9 @@ test_generator.reset()   # prepare to use test_generator entirely
 # do not open files in the result_path, it will cause Permission error and OS error
 # clean=True means that delete all the files in the sub_folder, so you will only get a batch of image prediction
 # otherwise the predicted image will just add into the sub_folder
-def predicted_each_batch_and_saved(clean=True, save_path=None, sub=None, batch_index=0):
+def predicted_each_batch_and_saved(clean=True, save_path=None, sub=None, batch_index=None):
     test_generator.batch_index = batch_index
-
+    print(test_generator.batch_index)
     for category_name in train_generator.class_indices.keys():
         sub_folder = save_path + '\\' + sub + category_name
         if clean:
@@ -258,14 +258,14 @@ def predicted_each_batch_and_saved(clean=True, save_path=None, sub=None, batch_i
             print('Clean all the folders and directories inside the save_path.')
         if not os.path.exists(sub_folder):
             os.makedirs(sub_folder)
-        print('Create sub folders {} for prediction.'.format(sub_folder))
+            print('Create sub folders {} for prediction.'.format(sub_folder))
     for count, per_image in enumerate(test_generator.next(), 1):
         mth3_predicted = custom_model.predict(np.asarray([per_image]))
         mth3_index = np.argmax(mth3_predicted[0], axis=0)
         mth3_predicted_answer = list(train_generator.class_indices.keys())[mth3_index]
-        for dir in os.listdir(save_path):
-            if dir[len(sub_file_prefix):].find(mth3_predicted_answer):
-                cv2.imwrite(save_path + '\\' + dir + '\\batch' + str(test_generator.batch_index-1) + '_' + str(count)
+        for _dir in os.listdir(save_path):
+            if _dir[len(sub_file_prefix):] == mth3_predicted_answer:
+                cv2.imwrite(save_path + '\\' + _dir + '\\batch' + str(test_generator.batch_index-1) + '_' + str(count)
                             + '_' + str(mth3_predicted[0][mth3_index]) + '.jpg', per_image*255)
 
 
@@ -274,7 +274,7 @@ for i in range(10):
     predicted_each_batch_and_saved(clean=False, save_path=result_path, sub=sub_file_prefix, batch_index=i)
 
 # example for saving only one specific batch
-predicted_each_batch_and_saved(clean=False, save_path=result_path, sub=sub_file_prefix, batch_index=15)
+predicted_each_batch_and_saved(clean=False, save_path=result_path, sub=sub_file_prefix, batch_index=15000)
 
 
 # keras github : https://github.com/keras-team/keras
