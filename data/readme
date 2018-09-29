@@ -8,6 +8,10 @@ data/
       dog.0.jpg
       dog.1.jpg
           ：
+    +car/
+      car.0.jpg
+      car.1.jpg
+          ：
   +val/
     +cat/
       cat.0.jpg
@@ -16,6 +20,10 @@ data/
     +dog/
       dog.0.jpg
       dog.1.jpg
+          ：
+    +car/
+      car.0.jpg
+      car.1.jpg
           ：
   +test/
     +(other images for predicting per image)
